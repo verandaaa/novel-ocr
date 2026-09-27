@@ -1,30 +1,30 @@
 # novel-ocr
 
-스캔된 소설 이미지에서 텍스트를 추출하는 프로젝트. EasyOCR(한글)을 사용하며,
-로컬 GPU 없이도 Google Colab 무료 GPU로 처리할 수 있게 노트북을 구성했습니다.
+스캔된 소설 이미지(zip 안의 zip 포함)에서 텍스트를 추출하는 프로젝트.
+PaddleOCR(한글)을 사용하고, 괄호 안 한자 병기(예: `진동왕(鎭東王)`)는 한자 모델로 보정합니다.
+로컬 GPU 없이 Google Colab 무료 GPU로 실행하도록 구성했습니다.
 
-## 사용법 (Colab, 추천)
+## 사용법 (Colab)
 
-1. [Google Colab](https://colab.research.google.com)에 접속 후 이 저장소의
-   `novel_ocr_colab.ipynb`를 업로드해서 엽니다. (파일 > 노트북 업로드)
-2. 상단 메뉴 **런타임 > 런타임 유형 변경 > T4 GPU** 선택 후 저장.
-3. Google Drive에 스캔 이미지 폴더(예: `novel_scans`)를 올려둡니다.
-4. 노트북 셀을 위에서부터 순서대로 실행 (Shift+Enter).
-   - Drive 마운트 시 인증 창에서 로그인/권한 허용
-   - `IMAGE_FOLDER` 경로를 본인 Drive 경로에 맞게 수정
-5. 결과는 `novel_ocr_output/novel_text.txt`로 Drive에 자동 저장됩니다.
-   중간에 세션이 끊겨도 이미 처리된 페이지는 남아있고, 다시 실행하면
-   처리 안 된 파일만 이어서 처리합니다.
+1. [Google Colab](https://colab.research.google.com)에서 **파일 > 노트북 업로드**로 `novel_ocr_colab.ipynb`를 엽니다.
+2. **런타임 > 런타임 유형 변경 > T4 GPU** 선택.
+3. Google Drive에 스캔 zip(또는 이미지 폴더)을 올립니다.
+4. 셀을 위에서부터 실행합니다.
+   - 4번 셀의 `IMAGE_SOURCE`를 본인 경로로 수정 (예: `/content/drive/MyDrive/소설/1권.zip`)
+   - 8번 셀에서 한 장 테스트 결과를 먼저 확인
+   - 9번 셀로 전체 처리
+5. 결과는 Drive의 `novel_ocr_output/texts/` 아래에 **원본과 같은 폴더 구조**로 이미지당 txt 하나씩 저장됩니다.
 
-## 로컬에서 실행하려면
+## 주요 기능
 
-```bash
-pip install -r requirements.txt
-python ocr_batch.py
-```
+- zip 속 zip을 끝까지 자동으로 풀기, 윈도우 zip 한글 파일명 깨짐 보정, 맥 `__MACOSX` 찌꺼기 제외
+- jpg / png / gif / bmp / webp / tif 지원 (확장자 대소문자 무관)
+- 같은 줄의 글자 영역을 좌→우로 정렬, 들여쓰기·줄 간격으로 문단 구분
+- 이어하기: 세션이 끊겨도 다시 실행하면 남은 이미지만 처리 (반쪽짜리 결과 파일이 생기지 않도록 원자적 저장)
+- 오류 난 이미지는 건너뛰고 `errors.log`에 기록
 
-## 참고
+## 한계
 
-- 세로쓰기 옛날 소설이나 손글씨는 별도 대응이 필요할 수 있습니다.
-- 이미지가 기울어졌거나 노이즈가 많으면 인식률이 떨어질 수 있어 전처리가
-  필요할 수 있습니다.
+- 분할 압축(.z01, .zip.001), 7z/rar/alz/egg는 풀지 않습니다 (경고만 출력).
+- 한국어 조판은 단어 중간에서도 줄이 바뀌므로, 책의 줄바꿈을 그대로 유지합니다.
+- 세로쓰기나 손글씨는 별도 대응이 필요합니다.
